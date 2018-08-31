@@ -11,6 +11,9 @@
 
 static const std::string OPENCV_WINDOW = "Ball Tracker";
 static const std::string HSV_WINDOW = "HSV View";
+static const std::string H_WINDOW = "H Component";
+static const std::string S_WINDOW = "S Component";
+static const std::string V_WINDOW = "V Component";
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -30,9 +33,16 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::Mat hsv_image;
     cv::cvtColor(cv_ptr->image, hsv_image, cv::COLOR_BGR2HSV);
 
+    // Seperation into 3 components
+    cv::Mat components[3];
+    cv::split(hsv_image, components);
+
     // Displaying image
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     cv::imshow(HSV_WINDOW, hsv_image);
+    cv::imshow(H_WINDOW, components[0]);
+    cv::imshow(S_WINDOW, components[1]);
+    cv::imshow(V_WINDOW, components[2]);
     cv::waitKey(3);
 }
 
@@ -47,6 +57,9 @@ int main(int argc, char **argv)
     // Creating windows
     cv::namedWindow(OPENCV_WINDOW);
     cv::namedWindow(HSV_WINDOW);
+    cv::namedWindow(H_WINDOW);
+    cv::namedWindow(S_WINDOW);
+    cv::namedWindow(V_WINDOW);
 
     ros::spin();
 }
