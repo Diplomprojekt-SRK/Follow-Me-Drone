@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find cvg_sim_gazebo)/launch/ardrone_testworld.launch"></include>
+    <node pkg="ball_tracker" type="ball_tracker" name="ball_tracker" output="screen"/>
+</launch>

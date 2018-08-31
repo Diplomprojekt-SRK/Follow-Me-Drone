@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="ardrone_autonomy" type="ardrone_driver" name="ardrone_driver" output="screen"/>
+    <node pkg="ball_tracker" type="ball_tracker" name="ball_tracker" output="screen"/>
+</launch>
