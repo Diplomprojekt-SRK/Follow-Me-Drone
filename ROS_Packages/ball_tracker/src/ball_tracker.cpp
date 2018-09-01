@@ -66,6 +66,24 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::inRange(components[2], value_slider_min, value_slider_max, value_treshold);
     cv::inRange(hsv_image, cv::Scalar(hue_slider_min, saturation_slider_min, value_slider_min), cv::Scalar(hue_slider_max, saturation_slider_max, value_slider_max), combined_treshold);
 
+    // Circle detection
+    std::vector<cv::Vec3f> circles;
+    cv::HoughCircles(combined_treshold, circles, cv::HOUGH_GRADIENT, 2,
+                 combined_treshold.rows/16, 100, 50, 0, 0
+    );
+
+    // Drawing detected circles to screen
+    for (std::size_t i = 0; i < circles.size(); ++i)
+    {
+            cv::Vec3i c = circles[i];
+            cv::Point center = cv::Point(c[0], c[1]);
+            int radius = c[2];
+            // Draw circle center
+            cv::circle(cv_ptr->image, center, 1, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+            // Draw circle outline
+            cv::circle(cv_ptr->image, center, radius, cv::Scalar(0, 255, 0), 3, cv::LINE_AA);
+    }
+
     // Displaying image
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     cv::imshow(HSV_WINDOW, hsv_image);
