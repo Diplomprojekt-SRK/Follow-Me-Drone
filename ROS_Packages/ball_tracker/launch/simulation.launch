@@ -1,4 +1,4 @@
 <launch>
-    <include file="$(find cvg_sim_gazebo)/launch/ardrone_testworld.launch"></include>
+    <include file="$(find ball_tracker)/launch/test_world.launch"></include>
     <node pkg="ball_tracker" type="ball_tracker" name="ball_tracker" output="screen"/>
 </launch>
