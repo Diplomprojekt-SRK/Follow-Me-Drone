@@ -9,12 +9,31 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+// Window names
 static const std::string OPENCV_WINDOW = "Ball Tracker";
 static const std::string HSV_WINDOW = "HSV View";
 static const std::string H_WINDOW = "H Component";
 static const std::string S_WINDOW = "S Component";
 static const std::string V_WINDOW = "V Component";
+static const std::string HT_WINDOW = "Hue Threshold";
+static const std::string ST_WINDOW = "Saturation Threshold";
+static const std::string VT_WINDOW = "Value Threshold";
+static const std::string CT_WINDOW = "Combined Threshold";
 
+// Variables for threshold calibration
+static const int HUE_MAX = 180;
+static const int SATURATION_MAX = 255;
+static const int VALUE_MAX = 255;
+int hue_slider_min = 0;
+int hue_slider_max = HUE_MAX;
+int saturation_slider_min = 0;
+int saturation_slider_max = SATURATION_MAX;
+int value_slider_min = 0;
+int value_slider_max = VALUE_MAX;
+
+/*
+ * Called when image is received
+ */
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     // Image conversion
@@ -37,13 +56,35 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::Mat components[3];
     cv::split(hsv_image, components);
 
+    // Thresholding
+    cv::Mat hue_treshold;
+    cv::Mat saturation_treshold;
+    cv::Mat value_treshold;
+    cv::Mat combined_treshold;
+    cv::inRange(components[0], hue_slider_min, hue_slider_max, hue_treshold);
+    cv::inRange(components[1], saturation_slider_min, saturation_slider_max, saturation_treshold);
+    cv::inRange(components[2], value_slider_min, value_slider_max, value_treshold);
+    cv::inRange(hsv_image, cv::Scalar(hue_slider_min, saturation_slider_min, value_slider_min), cv::Scalar(hue_slider_max, saturation_slider_max, value_slider_max), combined_treshold);
+
     // Displaying image
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
     cv::imshow(HSV_WINDOW, hsv_image);
     cv::imshow(H_WINDOW, components[0]);
     cv::imshow(S_WINDOW, components[1]);
     cv::imshow(V_WINDOW, components[2]);
+    cv::imshow(HT_WINDOW, hue_treshold);
+    cv::imshow(ST_WINDOW, saturation_treshold);
+    cv::imshow(VT_WINDOW, value_treshold);
+    cv::imshow(CT_WINDOW, combined_treshold);
     cv::waitKey(3);
+}
+
+/*
+ * Called when user moves trackbar.
+ * Nothing happens here.
+ */
+void trackbarCallback(int, void*)
+{
 }
 
 int main(int argc, char **argv)
@@ -60,6 +101,18 @@ int main(int argc, char **argv)
     cv::namedWindow(H_WINDOW);
     cv::namedWindow(S_WINDOW);
     cv::namedWindow(V_WINDOW);
+    cv::namedWindow(HT_WINDOW);
+    cv::namedWindow(ST_WINDOW);
+    cv::namedWindow(VT_WINDOW);
+    cv::namedWindow(CT_WINDOW);
+
+    // Creating trackbars for threshold calibration
+    cv::createTrackbar("Hue Minimum", H_WINDOW, &hue_slider_min, HUE_MAX, trackbarCallback);
+    cv::createTrackbar("Hue Maximum", H_WINDOW, &hue_slider_max, HUE_MAX, trackbarCallback);
+    cv::createTrackbar("Saturation Minimum", S_WINDOW, &saturation_slider_min, SATURATION_MAX, trackbarCallback);
+    cv::createTrackbar("Saturation Maximum", S_WINDOW, &saturation_slider_max, SATURATION_MAX, trackbarCallback);
+    cv::createTrackbar("Value Minimum", V_WINDOW, &value_slider_min, VALUE_MAX, trackbarCallback);
+    cv::createTrackbar("Value Maximum", V_WINDOW, &value_slider_max, VALUE_MAX, trackbarCallback);
 
     ros::spin();
 }
