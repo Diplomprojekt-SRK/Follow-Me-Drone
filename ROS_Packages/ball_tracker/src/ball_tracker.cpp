@@ -11,6 +11,7 @@
 
 // Window names
 static const std::string OPENCV_WINDOW = "Ball Tracker";
+static const std::string BLURRED_WINDOW = "Blurred";
 static const std::string HSV_WINDOW = "HSV View";
 static const std::string H_WINDOW = "H Component";
 static const std::string S_WINDOW = "S Component";
@@ -49,9 +50,13 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
+    // Gaussian blur
+    cv::Mat blurred;
+    cv::GaussianBlur(cv_ptr->image, blurred, cv::Size(11, 11), 0);
+
     // Conversion to HSV
     cv::Mat hsv_image;
-    cv::cvtColor(cv_ptr->image, hsv_image, cv::COLOR_BGR2HSV);
+    cv::cvtColor(blurred, hsv_image, cv::COLOR_BGR2HSV);
 
     // Seperation into 3 components
     cv::Mat components[3];
@@ -95,6 +100,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
     // Displaying image
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
+    cv::imshow(BLURRED_WINDOW, blurred);
     cv::imshow(HSV_WINDOW, hsv_image);
     cv::imshow(H_WINDOW, components[0]);
     cv::imshow(S_WINDOW, components[1]);
@@ -125,6 +131,7 @@ int main(int argc, char **argv)
 
     // Creating windows
     cv::namedWindow(OPENCV_WINDOW);
+    cv::namedWindow(BLURRED_WINDOW);
     cv::namedWindow(HSV_WINDOW);
     cv::namedWindow(H_WINDOW);
     cv::namedWindow(S_WINDOW);
