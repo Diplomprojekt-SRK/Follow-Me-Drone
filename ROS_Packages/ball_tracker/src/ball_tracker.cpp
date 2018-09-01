@@ -19,6 +19,7 @@ static const std::string HT_WINDOW = "Hue Threshold";
 static const std::string ST_WINDOW = "Saturation Threshold";
 static const std::string VT_WINDOW = "Value Threshold";
 static const std::string CT_WINDOW = "Combined Threshold";
+static const std::string MORPHED_WINDOW = "Eroded and Dilated";
 
 // Variables for threshold calibration
 static const int HUE_MAX = 180;
@@ -66,10 +67,18 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::inRange(components[2], value_slider_min, value_slider_max, value_treshold);
     cv::inRange(hsv_image, cv::Scalar(hue_slider_min, saturation_slider_min, value_slider_min), cv::Scalar(hue_slider_max, saturation_slider_max, value_slider_max), combined_treshold);
 
+    // Erosion
+    cv::Mat eroded;
+    cv::erode(combined_treshold, eroded, cv::Mat(), cv::Point(-1, -1), 2, cv::BORDER_CONSTANT, cv::morphologyDefaultBorderValue());
+
+    // Dilation
+    cv::Mat dilated;
+    cv::dilate(eroded, dilated, cv::Mat(), cv::Point(-1, -1), 2, cv::BORDER_CONSTANT, cv::morphologyDefaultBorderValue());
+
     // Circle detection
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(combined_treshold, circles, cv::HOUGH_GRADIENT, 2,
-                 combined_treshold.rows/16, 100, 50, 0, 0
+    cv::HoughCircles(dilated, circles, cv::HOUGH_GRADIENT, 2,
+                 dilated.rows/16, 100, 50, 0, 0
     );
 
     // Drawing detected circles to screen
@@ -94,6 +103,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv::imshow(ST_WINDOW, saturation_treshold);
     cv::imshow(VT_WINDOW, value_treshold);
     cv::imshow(CT_WINDOW, combined_treshold);
+    cv::imshow(MORPHED_WINDOW, dilated);
     cv::waitKey(3);
 }
 
@@ -123,6 +133,7 @@ int main(int argc, char **argv)
     cv::namedWindow(ST_WINDOW);
     cv::namedWindow(VT_WINDOW);
     cv::namedWindow(CT_WINDOW);
+    cv::namedWindow(MORPHED_WINDOW);
 
     // Creating trackbars for threshold calibration
     cv::createTrackbar("Hue Minimum", H_WINDOW, &hue_slider_min, HUE_MAX, trackbarCallback);
